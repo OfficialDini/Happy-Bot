@@ -1,7 +1,8 @@
 import os
 import discord
-from google.cloud import secretmanager
+from discord.ext import tasks, commands
 from itertools import cycle
+from google.cloud import secretmanager
 
 # Initialize Discord client
 intents = discord.Intents.default()
@@ -13,7 +14,7 @@ client = discord.Client(intents=intents)
 def get_discord_token():
     # Initialize Secret Manager client
     client = secretmanager.SecretManagerServiceClient()
-    secret_name = "projects/963968816496/secrets/DISCORD_TOKEN"
+    secret_name = "projects/YOUR_PROJECT_ID/secrets/TOKEN/latest"
     response = client.access_secret_version(request={"name": secret_name})
     return response.payload.data.decode("UTF-8")
 
@@ -23,17 +24,17 @@ status_cycle = cycle([
     discord.Activity(type=discord.ActivityType.watching, name="you cheer up!")
 ])
 
-@client.event
-async def on_ready():
-    print(f"We have logged in as {client.user}")
-    change_status.start()  # Start changing statuses after the bot is ready
-
 @tasks.loop(seconds=10)
 async def change_status():
     # Get the next activity from the cycle
     next_status = next(status_cycle)
     # Update the bot's presence
     await client.change_presence(activity=next_status)
+
+@client.event
+async def on_ready():
+    print(f"We have logged in as {client.user}")
+    change_status.start()  # Start changing statuses after the bot is ready
 
 @client.event
 async def on_message(message):
