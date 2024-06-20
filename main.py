@@ -102,4 +102,5 @@ async def on_message(message):
 
 keep_alive()
 change_status()
-client.run(os.getenv('TOKEN'))
+discord_token = get_discord_token()
+client.run(discord_token)
